@@ -30,8 +30,8 @@ section thoroughly to understand all output. Pay special attention to output
 that indicates a failure while applying a patch. These errors will require some
 manual labor to fix.
 
-*This tool is not limited to Voiture projects. It should work perfectly fine in
-any Drupal installation.*
+**This tool is not limited to Voiture projects. It should work perfectly fine in
+any Drupal installation.**
 
 ## What does it do?
 
