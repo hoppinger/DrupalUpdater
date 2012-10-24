@@ -177,6 +177,8 @@ def construct_filelist(path, ignore_list):
         dirs[:] = [ d for d in dirs if not len([ True for i in ignore_list if i.match(os.path.relpath(os.path.join(root, d), path)) ])]
         # add the directories that remained in dirs to the result
         result.extend([ os.path.relpath(os.path.join(root, d), path) for d in dirs])
+
+    result.sort()
     return result
 
 # Get the first subdirectory of a path. This is because the tar.gz files from
