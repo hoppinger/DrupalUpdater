@@ -58,6 +58,8 @@ core_re = re.compile('^core = "?(\d+\.x)"?$')
 version_dev_re = re.compile('.*(dev|HEAD).*')
 version_split_re = re.compile('^(\d+\.x-)?(\d+)\..*$')
 info_re = re.compile(r"\w+\.info")
+release_type_key = "Release type"
+required_release_types = ["Security update"]
 
 ## Check if an info file is from a package. If so, return the package dict
 def get_package(info_file):
@@ -209,8 +211,17 @@ def get_best_version(package):
 
         dom = minidom.parseString(xml)
         for release in dom.getElementsByTagName('release'):
-            if ''.join([ node.data for node in release.getElementsByTagName('version_major')[0].childNodes if node.nodeType == node.TEXT_NODE]) == major_version:
-                return ''.join([ node.data for node in release.getElementsByTagName('version')[0].childNodes if node.nodeType == node.TEXT_NODE])
+            version = ''.join([ node.data for node in release.getElementsByTagName('version')[0].childNodes if node.nodeType == node.TEXT_NODE])
+            if version == package['version']:
+                return version
+            if ''.join([ node.data for node in release.getElementsByTagName('version_major')[0].childNodes if node.nodeType == node.TEXT_NODE]) != major_version:
+                continue
+            
+            for term in release.getElementsByTagName('term'):
+                if ''.join([ node.data for node in term.getElementsByTagName('name')[0].childNodes if node.nodeType == node.TEXT_NODE]) == release_type_key:
+                    release_type = (''.join([ node.data for node in term.getElementsByTagName('value')[0].childNodes if node.nodeType == node.TEXT_NODE]))
+                    if release_type in required_release_types:
+                        return version
     return False
 
 # Check if a file is binary. Bit of a trick, it scans the first Kb of the file
@@ -269,7 +280,8 @@ for package in packages:
 
             # construct a list of regular expressions to ignore some files
             ignore_list = [
-                re.compile('^(.*/)?\.svn$') # always ignore .svn
+                re.compile('^(.*/)?\.svn$'), # always ignore .svn
+                re.compile('^(.*/)?\.git$'), # always ignore .git
             ]
             if package['name'] == 'drupal':
                 ignore_list.extend([
@@ -459,8 +471,10 @@ for package in packages:
                                         print e.output
                     for f in added_files:
                         if os.path.isfile(os.path.join(patches_path, package['name'], f)) and is_binary(os.path.join(patches_path, package['name'], f)):
+                            if not os.path.isdir(os.path.dirname(os.path.join(package['location'], f))):
+                                os.makedirs(os.path.dirname(os.path.join(package['location'], f)))
                             shutil.copyfile(os.path.join(patches_path, package['name'], f), os.path.join(package['location'], f))
-                            print "Copied changed binary file %s back into the project" % f
+                            print "Copied added binary file %s back into the project" % f
                         if os.path.isfile(os.path.join(patches_path, package['name'], f + '.patch')):
                             with workingdir(package['location']):
                                 with open(os.path.join(patches_path, package['name'], f + '.patch')) as fp:
