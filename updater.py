@@ -395,7 +395,7 @@ for package in packages:
                     # handle binary files
                     if not os.path.isdir(os.path.dirname(os.path.join(patches_path, package['name'], f))):
                         os.makedirs(os.path.dirname(os.path.join(patches_path, package['name'], f)))
-                    shutil.copyfile(os.path.join(download_location, f), os.path.join(patches_path, f + '.remove'))
+                    shutil.copyfile(os.path.join(download_location, f), os.path.join(patches_path, package['name'], f + '.remove'))
                     print 'Removed binary file %s. Copied to patches directory with a .remove suffix.' % f
                 else:
                     # handle text files
